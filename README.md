@@ -24,7 +24,7 @@ $ q src/funcForm.q "exec a from table" -q
 # => ?[table;();();`a]
 ```
 
-#### Simple select:
+#### Simple select
 
 ```bash
 $ q funcForm.q "select from table" -q
