@@ -228,6 +228,67 @@ lbs alg lvl dataType dataCount writeTime            readTime             compFac
 
 The return value is a table where each row corresponds to the compression measurements of some LBS-algorithm-level combination.
 
+### testQuery
+
+Test a query on a compressed table.
+
+```q
+.zipPerf.testQuery[params;query;table]
+```
+
+* `params` - A list of different compression paramters of the form `(lbs alg lvl;lbs alg lvl;...)`.
+* `query` - Query to apply. Can be a QSQL query as a string (table name does not matter as it is replaced). Otherwise, query functional form with first param (table) missing.
+* `table` - Table data to test.
+
+#### Example - Compression with all possible LBS, algorithm, and level combinations
+
+```q
+q).zipPerf.testQuery[17 2 0;"select avg price by sym from t";] flip `time`sym`price`size`side!1000?/:(.z.p;`3;100f;100;"bs")
+lbs      | 17
+alg      | 2
+lvl      | 0
+dataCount| 1000
+testTime | 0D00:00:00.424485159
+queryTime| 0D00:00:00.000243493
+```
+
+The return value is a dictionary with the LBS, algorithm, level, total test time, and (average) query time values values.
+
+### testQueryAll
+
+Test a query on a compressed table for all compression parameter combinations.
+
+```q
+.zipPerf.testQueryAll[query;table]
+```
+
+* `query` - Query to apply. Can be a QSQL query as a string (table name does not matter as it is replaced). Otherwise, query functional form with first param (table) missing.
+* `table` - Table data to test.
+
+#### Example - Compression with all possible LBS, algorithm, and level combinations
+
+```q
+q).zipPerf.testQueryAll["select avg price by sym from t";] flip `time`sym`price`size`side!1000?/:(.z.p;`3;100f;100;"bs")
+lbs alg lvl dataCount testTime             queryTime           
+---------------------------------------------------------------
+0   0   0   1000      0D00:00:00.401942610 0D00:00:00.000200729
+12  1   0   1000      0D00:00:00.407015223 0D00:00:00.000205610
+12  2   0   1000      0D00:00:00.431666294 0D00:00:00.000201856
+12  2   1   1000      0D00:00:00.424191757 0D00:00:00.000347730
+12  2   2   1000      0D00:00:00.430291332 0D00:00:00.000336117
+12  2   3   1000      0D00:00:00.431817517 0D00:00:00.000327068
+12  2   4   1000      0D00:00:00.437688681 0D00:00:00.000333754
+12  2   5   1000      0D00:00:00.434028278 0D00:00:00.000331969
+12  2   6   1000      0D00:00:00.432250174 0D00:00:00.000336008
+12  2   7   1000      0D00:00:00.420087698 0D00:00:00.000341273
+12  2   8   1000      0D00:00:00.453328214 0D00:00:00.000324735
+12  2   9   1000      0D00:00:00.439938019 0D00:00:00.000340894
+12  3   0   1000      0D00:00:00.413735690 0D00:00:00.000210752
+..
+```
+
+The return value is a table where each row corresponds to the (average) query time value of some LBS-algorithm-level combination.
+
 ## Other Functions
 
 ### factor
