@@ -20,7 +20,7 @@
         Sudo priviliges are required. Password prompt will appear if applicable.
 \
 
-.zipPerf.cfg.ntimes:10;           // Number of times to read/write and then take average over
+.zipPerf.cfg.ntimes:5;            // Number of times to read/write and then take average over
 .zipPerf.cfg.tmpFile:`:./tmpData; // Temporary file where data will be read from/written to
 
 .zipPerf.priv.levels:(1#0; 1#0; til 10; 1#0; til 17; -7+til 30);
@@ -177,6 +177,18 @@
 // @param data Any Data to test cmpression on.
 // @return Table Compression statistics.
 .zipPerf.testAll:{[data] .zipPerf.testCompression[;data] .zipPerf.priv.allCombs[]};
+
+// @brief Run testAll multiple times for different random data.
+// @param n Long Number of times to run.
+// @param gf Function Generator function to create random data.
+// @returns Tables n result tables. 
+.zipPerf.testAllRand:{[n;gf]
+    if[type gf; gf:gf,(::)];
+    r:();
+    do[n; r,:enlist .zipPerf.testAll eval gf];
+    r:({x pj `lbs`alg`lvl`dataType`dataCount xkey y}/) r;
+    update "n"$writeTime%n, "n"$readTime%n, compFactor%n from r
+ };
 
 // @brief Test a query on a compressed table.
 // @params Compression parameters in the form (LBS;algorithm;level).

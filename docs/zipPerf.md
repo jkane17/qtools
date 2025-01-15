@@ -29,7 +29,7 @@ q)\l zipPerf.q
 
 Measurements are taken some number of times specified by the variable `.zipPerf.cfg.ntimes`. The result is the average of these measurements. This is because a single measurement may be skewed by some uncontrollable system related factor. By averaging over a few measurements, we get a better estimate.
 
-The default value of `.zipPerf.cfg.ntimes` is 10. This can be changed simply by setting this varaible before running the test:
+The default value of `.zipPerf.cfg.ntimes` is 5. This can be changed simply by setting this varaible before running the test:
 
 ```q
 q).zipPerf.cfg.ntimes:20
@@ -227,6 +227,50 @@ lbs alg lvl dataType dataCount writeTime            readTime             compFac
 ```
 
 The return value is a table where each row corresponds to the compression measurements of some LBS-algorithm-level combination.
+
+### testAllRand
+
+Run testAll multiple times for different random data and take an average of the results.
+
+This is useful if you want to find the best parameter combination in general as the test is run for different random lists.
+
+```q
+.zipPerf.testAllRand[n;gf]
+```
+
+* `n` - Number of times to run.
+* `gf` - Generator function to create random data.
+
+#### Example - Compression with all possible LBS, algorithm, and level combinations for random lists of longs
+
+```q
+q).zipPerf.testAllRand[10;{1000?100}]
+lbs alg lvl dataType dataCount writeTime            readTime             compFactor testTime            
+--------------------------------------------------------------------------------------------------------
+0   0   0   7        1000      0D00:00:00.000077714 0D00:00:00.000187332            0D00:00:04.715395829
+12  1   0   7        1000      0D00:00:00.000105548 0D00:00:00.000173705 3.166576   0D00:00:04.970611999
+12  2   0   7        1000      0D00:00:00.000102829 0D00:00:00.000150098 0.9920792  0D00:00:04.785179199
+12  2   1   7        1000      0D00:00:00.000190296 0D00:00:00.000243727 4.385968   0D00:00:04.867883235
+12  2   2   7        1000      0D00:00:00.000194442 0D00:00:00.000246453 4.502704   0D00:00:04.846590898
+12  2   3   7        1000      0D00:00:00.000214193 0D00:00:00.000182812 4.538073   0D00:00:04.797689885
+12  2   4   7        1000      0D00:00:00.000223326 0D00:00:00.000224947 4.725345   0D00:00:04.876100725
+12  2   5   7        1000      0D00:00:00.000266821 0D00:00:00.000333538 4.699654   0D00:00:04.966641278
+12  2   6   7        1000      0D00:00:00.000372714 0D00:00:00.000279373 4.68675    0D00:00:05.112665167
+12  2   7   7        1000      0D00:00:00.000462963 0D00:00:00.000252609 4.723701   0D00:00:05.130355051
+12  2   8   7        1000      0D00:00:00.001729437 0D00:00:00.000254381 5.102836   0D00:00:05.274273416
+12  2   9   7        1000      0D00:00:00.002567057 0D00:00:00.000267353 5.122102   0D00:00:05.342428371
+12  3   0   7        1000      0D00:00:00.000123172 0D00:00:00.000254917 3.193653   0D00:00:05.216694103
+12  4   0   7        1000      0D00:00:00.000377069 0D00:00:00.000158438 3.490863   0D00:00:05.491385262
+12  4   1   7        1000      0D00:00:00.000155222 0D00:00:00.000241541 3.20796    0D00:00:04.999821601
+12  4   2   7        1000      0D00:00:00.000164817 0D00:00:00.000226271 3.20796    0D00:00:05.308271308
+..
+```
+
+The return value is a table where each row corresponds to the compression measurements of some LBS-algorithm-level combination.
+
+The `writeTime`, `readTime`, and `compFactor` columns are the **average** over all the different random lists. 
+
+The `testTime` column is the **sum** of the times taken for each test.
 
 ### testQuery
 
