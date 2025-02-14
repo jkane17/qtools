@@ -1,22 +1,21 @@
 
 /
-    File:
+    @file
         zipPerf.q
     
-    Description:
+    @description
         Test the performance of difference zip parameters for the given data.
     
-    Supported OS:
-        Linux
+        Supported OS: Linux
 
-    Usage:
+    @usage
         $q zipPerf.q
 
         or
         
         q)\l zipPerf.q
 
-    Note:
+    @note
         Sudo priviliges are required. Password prompt will appear if applicable.
 \
 
@@ -37,7 +36,7 @@
 .zipPerf.priv.del:@[hdel;;()];
 
 // @brief Calculate the average run time of some operation.
-// @param func GeneralList Function and its arguments. 
+// @param func List Function and its arguments. 
 .zipPerf.priv.timeit:{[func]
     t:"n"$();
     do[.zipPerf.cfg.ntimes; t,:value func];
@@ -45,7 +44,7 @@
  };
 
 // @brief Time a (compressed data) write operation.
-// @param params GeneralList Temporary file to write to and compression parameters.
+// @param params List Temporary file to write to and compression parameters.
 // @param data Any Data to compress and write.
 // @return Timespan Time taken to perform write operation.
 .zipPerf.priv.timeWrite:{[params;data]
@@ -57,7 +56,7 @@
  };
 
 // @brief Time a (compressed data) read operation.
-// @param File FileSymbol File to read.
+// @param file FileSymbol File to read.
 // @return Timespan Time taken to perform read operation.
 .zipPerf.priv.timeRead:{[file]
     .zipPerf.priv.clearCache[];
@@ -67,7 +66,7 @@
  };
 
 // @brief Time a compressed table query.
-// @param params GeneralList Temporary file to write to and compression parameters.
+// @param params List Temporary file to write to and compression parameters.
 // @param query Function|String Query to apply (QSQL query as a string or functional form).
 // @param table Table Data to compress and query.
 // @return Timespan Time taken to perform read operation.
@@ -79,7 +78,7 @@
  };
 
 // @brief Compute the average write time of the data in compressed form.
-// @param params GeneralList Temporary file to write to and compression parameters.
+// @param params List Temporary file to write to and compression parameters.
 // @param data Any Data to compress and write.
 // @return Timespan Average time taken to perform write operation.
 .zipPerf.priv.avgWriteTime:{[params;data] 
@@ -87,12 +86,12 @@
  };
 
 // @brief Compute the average read time of the given file.
-// @param File FileSymbol File to read.
+// @param file FileSymbol File to read.
 // @return Timespan Average time taken to perform read operation.
 .zipPerf.priv.avgReadTime:{[file] .zipPerf.priv.timeit (`.zipPerf.priv.timeRead;file)};
 
 // @brief Compute the average query time of a compressed table.
-// @param params GeneralList Temporary file to write to and compression parameters.
+// @param params List Temporary file to write to and compression parameters.
 // @param query Function|String Query to apply (QSQL query as a string or functional form).
 // @param table Table Data to compress and query.
 // @return Timespan Average time taken to perform query.
@@ -101,7 +100,7 @@
  };
 
 // @brief Measure the compression read and write times for the given parameters and data.
-// @param params GeneralList Temporary file to write to and compression parameters.
+// @param params List Temporary file to write to and compression parameters.
 // @param data Any Data to compress.
 // @return Dict Average write time, average read time, and compression factor.
 .zipPerf.priv.measure:{[params;data]
@@ -114,22 +113,22 @@
  };
 
 // @brief Utility to remove all but one parameter set where alg = 0 (no compression)
-// @param params GeneralList Compression parameter lists to filter.
-// @return GeneralList Filtered compression parameter lists.
+// @param params List Compression parameter lists to filter.
+// @return List Filtered compression parameter lists.
 .zipPerf.priv.fltZeros:{[params] $[any i:0=params[;1]; enlist[0 0 0],params where not i; params]};
 
 // @breif Build all combinations of algorithms and levels.
-// @return GeneralList All algorithm-level combinations (list of two element lists). 
+// @return List All algorithm-level combinations (list of two element lists). 
 .zipPerf.priv.allAlgLvls:{[] raze (til count .zipPerf.priv.levels) cross'.zipPerf.priv.levels};
 
 // @breif Build all combinations of compression parameters.
-// @return GeneralList All LBS-algorithm-level combinations (list of three element lists). 
+// @return List All LBS-algorithm-level combinations (list of three element lists). 
 .zipPerf.priv.allCombs:{[] 
     .zipPerf.priv.fltZeros .zipPerf.priv.lbs cross .zipPerf.priv.allAlgLvls[]
  };
 
 // @brief Compute the compression factor.
-// @brief file FileSymbol File to compute compression factor for.
+// @param file FileSymbol File to compute compression factor for.
 // @return Float Compression factor.
 .zipPerf.factor:{[file] $[count s:-21!file; (%). s`uncompressedLength`compressedLength; 0n]};
 
@@ -148,7 +147,7 @@
  };
 
 // @brief Test data compression for each given compression parameter list.
-// @param params GeneralList List of compression parameter lists.
+// @param params List List of compression parameter lists.
 // @param data Any Data to test cmpression on.
 // @return Table Compression statistics.
 .zipPerf.testCompression:{[params;data] .zipPerf.testSingle[;data] each params};
@@ -191,7 +190,7 @@
  };
 
 // @brief Test a query on a compressed table.
-// @params Compression parameters in the form (LBS;algorithm;level).
+// @param params List Compression parameters in the form (LBS;algorithm;level).
 // @param query Function|String Query to apply. Can be a QSQL query as a string (table name does not
 // matter as it is replaced). Otherwise, query functional form with first param (table) missing.
 // @param table Table Table data to test.
