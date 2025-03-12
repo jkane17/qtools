@@ -32,14 +32,14 @@ Measurements are taken some number of times specified by the variable `.zipPerf.
 The default value of `.zipPerf.cfg.ntimes` is 5. This can be changed simply by setting this varaible before running the test:
 
 ```q
-q).zipPerf.cfg.ntimes:20
+.zipPerf.cfg.ntimes:20
 ```
 
 ### tmpFile
 
 During the test, data is written and read from a temporary file which will (should) be cleaned up afterwards.
 
-By default, this file is stored in the current working directory.  This can be changed incase of permissioning issues or to test compression on different mounts for example.
+By default, this file is stored in the current working directory. This can be changed incase of permissioning issues or to test compression on different mounts for example.
 
 ```q
 .zipPerf.cfg.tmpFile:`:/path/to/tmpData
@@ -47,7 +47,7 @@ By default, this file is stored in the current working directory.  This can be c
 
 ## Test Functions
 
-Below is a description the functions provided. For each function, an example is provided where I have used:
+Below is a description of the available functions. For each function, an example is provided where I have used:
 
 ```q
 data:1000?100
