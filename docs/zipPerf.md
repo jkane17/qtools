@@ -81,12 +81,12 @@ testTime  | 0D00:00:01.737507018
 
 The return value contains information about the compression parameters, the type and count of our data, as well as the compression measurements. In this example (approximately) the average write time was 228 microseconds, the average read time was 811 microseconds, the compression factor was 0.993, and the time taken to run the test was 1.738 seconds.
 
-### testCompression
+### testMulti
 
 Test data compression for each given compression parameter list.
 
 ```q
-.zipPerf.testCompression[params;data] 
+.zipPerf.testMulti[params;data] 
 ```
 
 * `params` - A list of different compression paramters of the form `(lbs alg lvl;lbs alg lvl;...)`.
@@ -110,10 +110,10 @@ q)(cross/)(16;2;til 10)
 16 2 9
 ```
 
-The `testCompression` function can now be used to test the given parameter combinations:
+The `testMulti` function can then be used to test the given parameter combinations:
 
 ```q
-q).zipPerf.testCompression[;data] (cross/)(16;2;til 10)
+q).zipPerf.testMulti[;data] (cross/)(16;2;til 10)
 lbs alg lvl dataType dataCount writeTime            readTime             compFactor testTime            
 --------------------------------------------------------------------------------------------------------
 16  2   0   7        1000      0D00:00:00.000212533 0D00:00:00.000717722 0.9930624  0D00:00:02.135759061
@@ -132,7 +132,7 @@ The return value is a table where each row corresponds to the compression measur
 
 ### testLBS
 
-Test data compression for a given logical block storage value with all combinations of algorithms and levels.
+Test data compression for a given logical block size value with all combinations of algorithms and levels.
 
 ```q
 .zipPerf.testLBS[lbs;data]
@@ -284,7 +284,7 @@ Test a query on a compressed table.
 * `query` - Query to apply. Can be a QSQL query as a string (table name does not matter as it is replaced). Otherwise, query functional form with first param (table) missing.
 * `table` - Table data to test.
 
-#### Example - Compression with all possible LBS, algorithm, and level combinations
+#### Example - Compression with LBS = 17 and using the GZip algorithm at level 0
 
 ```q
 q).zipPerf.testQuery[17 2 0;"select avg price by sym from t";] flip `time`sym`price`size`side!1000?/:(.z.p;`3;100f;100;"bs")
@@ -333,6 +333,61 @@ lbs alg lvl dataCount testTime             queryTime
 
 The return value is a table where each row corresponds to the (average) query time value of some LBS-algorithm-level combination.
 
+### testSplayedCol
+
+Test compression for the a given splayed table column.
+
+```q
+.zipPerf.testSplayedCol[testFunc;db;table;col]
+```
+
+* `testFunc` - Compression test function projection with all arguments except data must provided.
+* `db` - Path to database root.
+* `table` - Path from db root to the table. Will just be table name for splayed, but can include partition for partitioned DB, e.g., `2025.03.17/trade`.
+* `col` - Table column to test.
+
+#### Example - Compression on size column with all possible LBS, algorithm, and level combinations
+
+```q
+q).zipPerf.testSplayedCol[.zipPerf.testAll;`:db;`trade;`size]
+lbs alg lvl dataType dataCount writeTime            readTime             compFactor testTime            
+--------------------------------------------------------------------------------------------------------
+0   0   0   7        10000     0D00:00:00.000404404 0D00:00:00.000313167            0D00:00:00.465373520
+12  1   0   7        10000     0D00:00:00.000310309 0D00:00:00.000647387 3.066922   0D00:00:00.435123156
+12  2   0   7        10000     0D00:00:00.000362229 0D00:00:00.000558402 0.9974073  0D00:00:00.393902529
+12  2   1   7        10000     0D00:00:00.001610481 0D00:00:00.000588663 4.490488   0D00:00:00.415225392
+12  2   2   7        10000     0D00:00:00.001630224 0D00:00:00.000571181 4.617196   0D00:00:00.366376268
+..
+```
+
+The return value is a table containing the compression test results.
+
+### testSplayed
+
+Test compression for the given splayed table columns.
+
+```q
+.zipPerf.testSplayed[testFunc;db;table;columns]
+```
+
+* `testFunc` - Compression test function projection with all arguments except data must provided.
+* `db` - Path to database root.
+* `table` - Path from db root to the table. Will just be table name for splayed, but can include partition for partitioned DB, e.g., `2025.03.17/trade`.
+* `columns` - Table columns to test. Provide null to test all columns.
+
+#### Example - Compression with all possible LBS, algorithm, and level combinations
+
+```q
+q).zipPerf.testSplayed[.zipPerf.testAll;`:db;`trade;`]
+time | +`lbs`alg`lvl`dataType`dataCount`writeTime`readTime`compFactor`testTime!(0 12 12 12..
+sym  | +`lbs`alg`lvl`dataType`dataCount`writeTime`readTime`compFactor`testTime!(0 12 12 12..
+price| +`lbs`alg`lvl`dataType`dataCount`writeTime`readTime`compFactor`testTime!(0 12 12 12..
+size | +`lbs`alg`lvl`dataType`dataCount`writeTime`readTime`compFactor`testTime!(0 12 12 12..
+side | +`lbs`alg`lvl`dataType`dataCount`writeTime`readTime`compFactor`testTime!(0 12 12 12..
+```
+
+The return value is a dictionary mapping of column name to its corresponding results table.
+
 ## Other Functions
 
 ### factor
@@ -357,4 +412,20 @@ q).zipPerf.factor `:uncompressedFile
 q)(`:compressedFile;16;1;0) set data
 q).zipPerf.factor `:compressedFile
 3.476149
+```
+
+### disableAlg
+
+Disable an algorithm so it will not be tested.
+
+```q
+.zipPerf.disableAlg alg
+```
+
+* `alg` - Compression algorithm to disable.
+
+#### Example - Disable gzip
+
+```q
+q).zipPerf.disableAlg 2
 ```

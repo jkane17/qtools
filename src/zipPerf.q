@@ -22,6 +22,7 @@
 .zipPerf.cfg.ntimes:5;            // Number of times to read/write and then take average over
 .zipPerf.cfg.tmpFile:`:./tmpData; // Temporary file where data will be read from/written to
 
+.zipPerf.priv.algs:til 6;
 .zipPerf.priv.levels:(1#0; 1#0; til 10; 1#0; til 17; -7+til 30);
 .zipPerf.priv.lbs:12+til 9;
 
@@ -119,7 +120,7 @@
 
 // @breif Build all combinations of algorithms and levels.
 // @return List All algorithm-level combinations (list of two element lists). 
-.zipPerf.priv.allAlgLvls:{[] raze (til count .zipPerf.priv.levels) cross'.zipPerf.priv.levels};
+.zipPerf.priv.allAlgLvls:{[] raze .zipPerf.priv.algs cross'.zipPerf.priv.levels .zipPerf.priv.algs};
 
 // @breif Build all combinations of compression parameters.
 // @return List All LBS-algorithm-level combinations (list of three element lists). 
@@ -131,6 +132,10 @@
 // @param file FileSymbol File to compute compression factor for.
 // @return Float Compression factor.
 .zipPerf.factor:{[file] $[count s:-21!file; (%). s`uncompressedLength`compressedLength; 0n]};
+
+// @brief Disable an algorithm so it will not be tested.
+// @param alg Long Compression algorithm to disable.
+.zipPerf.disableAlg:{[alg] .zipPerf.priv.algs:.zipPerf.priv.algs except alg;};
 
 // @brief Test data compression for a single list of compression parameters.
 // @param params Longs Compression parameters.
@@ -150,15 +155,15 @@
 // @param params List List of compression parameter lists.
 // @param data Any Data to test cmpression on.
 // @return Table Compression statistics.
-.zipPerf.testCompression:{[params;data] .zipPerf.testSingle[;data] each params};
+.zipPerf.testMulti:{[params;data] .zipPerf.testSingle[;data] each params};
 
-// @brief Test data compression for a given (l)ogical (b)lock (s)torage value with all combinations 
+// @brief Test data compression for a given (l)ogical (b)lock (s)ize value with all combinations 
 // of algorithms and levels.
 // @param lbs Long Logical block size.
 // @param data Any Data to test cmpression on.
 // @return Table Compression statistics.
 .zipPerf.testLBS:{[lbs;data] 
-    .zipPerf.testCompression[;data] 
+    .zipPerf.testMulti[;data] 
         .zipPerf.priv.fltZeros[lbs,/:.zipPerf.priv.allAlgLvls[]] except enlist 0 0 0 
  };
 
@@ -168,14 +173,14 @@
 // @param data Any Data to test cmpression on.
 // @return Table Compression statistics.
 .zipPerf.testAlg:{[alg;data] 
-    .zipPerf.testCompression[;data] 
+    .zipPerf.testMulti[;data] 
         .zipPerf.priv.fltZeros .zipPerf.priv.lbs cross alg,/:.zipPerf.priv.levels alg
  };
 
 // @brief Test data compression for all combinations of lbs, algorithms, and levels.
 // @param data Any Data to test cmpression on.
 // @return Table Compression statistics.
-.zipPerf.testAll:{[data] .zipPerf.testCompression[;data] .zipPerf.priv.allCombs[]};
+.zipPerf.testAll:{[data] .zipPerf.testMulti[;data] .zipPerf.priv.allCombs[]};
 
 // @brief Run testAll multiple times for different random data.
 // @param n Long Number of times to run.
@@ -213,4 +218,34 @@
 // @return Table Query statistics.
 .zipPerf.testQueryAll:{[query;table]
     .zipPerf.testQuery[;query;table] each .zipPerf.priv.allCombs[]
+ };
+
+// @brief Test compression for the a given splayed table column.
+// @param testFunc Projection Compression test function projection with all arguments except 
+/ data must provided.
+// @param db FileSymbol Path to database root.
+// @param table Symbol Name of spalyed table.
+// @param col Symbol Table column to test.
+// @return Table Compression results table.
+// @example .zipPerf.testSplayedCol[.zipPerf.testAll;`:db;`trade;`size]
+.zipPerf.testSplayedCol:{[testFunc;db;table;col]
+    data:get .Q.dd[db;table,col];
+    if[type[data] within 20 76h; data:get[.Q.dd[db;key data]] data];
+    testFunc data
+ };
+
+// @brief Test compression for the given splayed table columns.
+// @param testFunc Projection Compression test function projection with all arguments except 
+/ data must provided.
+// @param db FileSymbol Path to database root.
+// @param table Symbol Path from db root to the table. Will just be table name for splayed,
+// but can include partition for partitioned DB, e.g., 2025.03.17/trade
+// @param columns Symbols Table columns to test. Provide null to test all columns.
+// @return Dict Mapping of column name to its corresponding results table.
+// @example .zipPerf.testSplayed[.zipPerf.testAll;`:db;`trade;cols `:db/trade]
+// @example .zipPerf.testSplayed[.zipPerf.testAll;`:db;`trade;`]
+// @example .zipPerf.testSplayed[.zipPerf.testAll;`:db;`$"2025.03.17/trade";cols `:db/trade]
+.zipPerf.testSplayed:{[testFunc;db;table;columns]
+    if[all null columns; columns:cols .Q.dd[db;table]];
+    columns!.zipPerf.testSplayedCol[testFunc;db;table;] each columns
  };
