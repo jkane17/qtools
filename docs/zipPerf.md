@@ -1,7 +1,7 @@
 
-# Measure Compression Performance
+# Benchmark Compression Performance
 
-Functions to measure the compression performance of some given data.
+Functions to benchmark the compression performance of some given data.
 
 ## Important Notes
 
@@ -45,7 +45,7 @@ By default, this file is stored in the current working directory. This can be ch
 .zipPerf.cfg.tmpFile:`:/path/to/tmpData
 ```
 
-## Test Functions
+## Functions
 
 Below is a description of the available functions. For each function, an example is provided where I have used:
 

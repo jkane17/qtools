@@ -4,7 +4,7 @@
         zipPerf.q
     
     @description
-        Test the performance of difference zip parameters for the given data.
+        Benchmark the performance of different zip parameters for the given data.
     
         Supported OS: Linux
 
