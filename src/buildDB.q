@@ -25,8 +25,10 @@
         | nsyms     | Max number of distinct symbols (may be lower depending on ntabs, ncols, & nrows). | 100                   |
 
     @todo
-        - Allow config option for finer grain control of table/column names, column types, and how random values are generated.
+        - Allow config option for finer grain control of table/column names, column types, attribute application, and how random values are generated.
 \
+
+// q src/buildDB.q -q -root testDB -dbtype part -ptype month -nparts 1 -ntabs 1 -nrows 100000 -ncols 30 -nsymcols 2 -nsyms 1000 -p 5000
 
 stdout:-1;
 stderr:-2;
@@ -57,6 +59,8 @@ randf["ef"]:{?[x;1000]%10};
 randf["c"]:?[;.Q.nA];
 randf["s"]:?[;`8];
 randf["pmdznuvt"]:?[;.z.p];
+
+strMaxLen:20;
 
 // @brief Script entry point.
 main:{[]
@@ -179,8 +183,10 @@ genData:{[nrows;syms;schema]
         data:{[n;s;d;i] @[d;i;:;n?s]}[nrows;syms;;]/[data;symCols];
         types:@[types;symCols;:;"s"]
     ];
+    // Generate strings
     if[c:count i:where types=" ";
-        data:@/[data;i;:;nrows cut randf["c";] each raze nrows#enlist c#nrows]
+        strings:-1_(0,sums 1+(c*nrows)?strMaxLen) cut randf["c";] strMaxLen*c*nrows;
+        data:@[data;i;:;nrows cut strings]
     ]; 
     schema upsert flip data 
  };
