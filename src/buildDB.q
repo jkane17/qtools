@@ -28,8 +28,6 @@
         - Allow config option for finer grain control of table/column names, column types, attribute application, and how random values are generated.
 \
 
-// q src/buildDB.q -q -root testDB -dbtype part -ptype month -nparts 1 -ntabs 1 -nrows 100000 -ncols 30 -nsymcols 2 -nsyms 1000 -p 5000
-
 stdout:-1;
 stderr:-2;
 
